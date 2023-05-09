@@ -72,7 +72,7 @@
                     fd.append(k, this.data[k]);
                 }
             }
-            fd.append('data', this.encode(JSON.stringify(n)));
+            fd.append('data', this.encode(JSON.stringify(arr)));
             await $.ajax({
                 url: url,
                 data: fd,
@@ -107,22 +107,23 @@
     };
 
     _proto.initDOM = function () {
-        var createElement = function (tagName, className) {
+        let createElement = function (tagName, className) {
             var elment = document.createElement(tagName);
             elment.className = className;
             return elment;
         };
 
-        var createCanvas = function (width, height) {
+        let createCanvas = function (width, height) {
             var canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
             return canvas;
         };
 
-        var canvas = createCanvas(this.options.width - 2, this.options.height); // 画布
-        var block = canvas.cloneNode(true); // 滑块
-        var sliderContainer = createElement('div', 'sliderContainer');
+        let canvas = createCanvas(this.options.width - 2, this.options.height); // 画布
+        canvas.style.borderRadius = '3px'
+        let block = canvas.cloneNode(true); // 滑块
+        let sliderContainer = createElement('div', 'sliderContainer');
 
         // 刷新按钮
         let refreshIcon = null;
@@ -152,16 +153,15 @@
         block.className = 'block';
         text.innerHTML = this.options.barText;
 
-        var el = this.$element;
-        el.appendChild(canvas);
-        el.appendChild(refreshIcon);
-        el.appendChild(block);
+        this.$element.appendChild(canvas);
+        this.$element.appendChild(refreshIcon);
+        this.$element.appendChild(block);
         if (el_sliderIcon) slider.appendChild(el_sliderIcon);
         sliderMask.appendChild(slider);
         sliderContainer.appendChild(sliderbg);
         sliderContainer.appendChild(sliderMask);
         sliderContainer.appendChild(text);
-        el.appendChild(sliderContainer);
+        this.$element.appendChild(sliderContainer);
 
         var _canvas = {
             canvas: canvas,
@@ -249,7 +249,9 @@
             var src = '';
             loadCount = 0;
             that.text.classList.remove('text-danger');
-            if (isFunction(that.options.setSrc)) src = that.options.setSrc();
+            if (isFunction(that.options.setSrc)) {
+                src = that.options.setSrc();
+            }
             if (!src || src === '') src = 'https://picsum.photos/' + that.options.width + '/' + that.options.height + '/?image=' + Math.round(Math.random() * 20);
             if (isIE) { // IE浏览器无法通过img.crossOrigin跨域，使用ajax获取图片blob然后转为dataURL显示
                 var xhr = new XMLHttpRequest();
@@ -315,14 +317,14 @@
             trail.push(Math.round(moveY));
         };
 
-        var handleDragEnd = function (e) {
+        var handleDragEnd = async function (e) {
             if (!isMouseDown) return false;
             isMouseDown = false;
             var eventX = e.clientX || e.changedTouches[0].clientX;
             if (eventX === originX) return false;
             that.sliderContainer.classList.remove('sliderContainer_active');
             that.trail = trail;
-            var data = that.verify();
+            var data = await that.verify();
             if (data.spliced && data.verified) {
                 that.sliderContainer.classList.add('sliderContainer_success');
                 // 验证成功回调
